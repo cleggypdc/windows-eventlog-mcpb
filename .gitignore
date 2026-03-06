@@ -1,0 +1,17 @@
+# MCPB build output
+*.mcpb
+
+# PowerShell
+*.ps1xml
+*.psm1.bak
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*~
