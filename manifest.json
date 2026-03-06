@@ -14,6 +14,7 @@
   },
   "server": {
     "type": "binary",
+    "entry_point": "server/server.ps1",
     "mcp_config": {
       "command": "pwsh",
       "args": ["-NoProfile", "-NonInteractive", "-File", "${__dirname}/server/server.ps1"],
