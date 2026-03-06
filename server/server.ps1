@@ -72,6 +72,7 @@ $ToolDefinitions = @(
             }
             required = @()
         }
+        annotations = @{ readOnlyHint = $true; destructiveHint = $false; idempotentHint = $true; openWorldHint = $false }
     },
     @{
         name = 'get_recent_events'
@@ -86,6 +87,7 @@ $ToolDefinitions = @(
             }
             required = @()
         }
+        annotations = @{ readOnlyHint = $true; destructiveHint = $false; idempotentHint = $true; openWorldHint = $false }
     },
     @{
         name = 'get_top_event_sources'
@@ -99,6 +101,7 @@ $ToolDefinitions = @(
             }
             required = @()
         }
+        annotations = @{ readOnlyHint = $true; destructiveHint = $false; idempotentHint = $true; openWorldHint = $false }
     },
     @{
         name = 'get_event_detail'
@@ -111,6 +114,7 @@ $ToolDefinitions = @(
             }
             required = @('record_id')
         }
+        annotations = @{ readOnlyHint = $true; destructiveHint = $false; idempotentHint = $true; openWorldHint = $false }
     }
 )
 
