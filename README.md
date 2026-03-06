@@ -18,7 +18,9 @@ Claude reads the raw event data and explains what it means, what likely caused i
 
 ## How it works
 
-This extension is a pure PowerShell MCP server. It shells out to `Get-WinEvent` and returns raw JSON to Claude, which does the reasoning. There is no external API, no telemetry, and no data leaves your machine. The PowerShell script is human-readable — every line of it is auditable before you run it.
+This extension is a pure PowerShell MCP server. It shells out to `Get-WinEvent` and returns JSON to Claude Desktop, which sends it to Anthropic's API for reasoning. The extension itself makes no network calls — but **the event log data you query is sent to Anthropic's servers** as part of your Claude conversation. See [Data privacy](#data-privacy) below.
+
+The PowerShell script is human-readable — every line of it is auditable before you run it.
 
 ## Prerequisites
 
@@ -139,6 +141,54 @@ Full detail for a single event by RecordId. Use after browsing to drill into a s
 |-----------|------|---------|-------------|
 | log_name | string | System | Event log (must be in allowlist) |
 | record_id | integer | — | Required. The RecordId of the event |
+
+## Data privacy
+
+**Event log data is sent to Anthropic.** When you ask Claude a question that triggers a tool call, the returned event log JSON is included in your conversation and sent to Anthropic's API over HTTPS. This is how all MCP tools work — the extension has no control over it.
+
+### What is sent
+
+The server strips most internal fields before returning data. Each event contains:
+
+- **Id, RecordId, TimeCreated** — event identifiers and timestamps
+- **ProviderName, LogName** — which service or component generated the event
+- **Level, LevelDisplayName** — severity (Critical, Error, Warning, etc.)
+- **Message** — free-text error description
+- **ProcessId** — the OS process that logged the event
+- **Properties** — structured event parameters (values only)
+
+Fields like BookmarkXml, MatchedQueryIds, BinaryLength, and internal .NET object metadata are stripped and never sent.
+
+### What can be sensitive
+
+Even with field stripping, the `Message` and `Properties` fields may contain:
+
+- **File paths** that reveal directory structure, usernames, or project names
+- **Hostnames and IP addresses** from network-related events
+- **Service account names** and **domain names** from authentication events
+- **Installed software names** from application errors
+- **Timestamps** that correlate with user activity patterns
+
+If the **Security log** is enabled, the exposure increases significantly to include usernames, logon/logoff times, source IP addresses, authentication types, and privilege escalation events.
+
+### Who should be cautious
+
+- **Corporate/enterprise users** — event logs may contain internal hostnames, domain structures, and service accounts that constitute sensitive infrastructure information. Check with your security team before installing.
+- **Regulated environments** (SOC 2, HIPAA, PCI-DSS, GDPR) — sending system telemetry containing potential PII to a third-party API may require a data processing assessment or may be prohibited by policy.
+- **Shared machines** — event logs on a shared workstation contain activity from all users. One user's Claude conversation could surface another user's logon events if the Security log is enabled.
+
+### Mitigations in place
+
+- **Log allowlist** — only System and Application are permitted by default. The Security log and operational logs must be explicitly opted into.
+- **Field stripping** — internal .NET metadata and binary fields are removed before data reaches Claude.
+- **Result caps** — a maximum of 500 events per query and a 24-hour time window limit reduce the volume of data that can be extracted in a single request.
+- **Read-only** — the extension cannot write to event logs, modify system state, or make network calls.
+
+### Recommendation
+
+For personal use on your own machine with the default System and Application logs, the risk is low — you are sending error messages and timestamps to Anthropic, similar to what you might paste into any support conversation.
+
+For corporate, shared, or regulated environments, **review the data with your security team first**. Run a test query, inspect the JSON output, and decide whether the content is acceptable to send to a third-party API. The source is in `server/server.ps1` — read it.
 
 ## For sysadmins
 
