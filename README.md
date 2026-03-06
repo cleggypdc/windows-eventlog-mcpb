@@ -142,6 +142,39 @@ Full detail for a single event by RecordId. Use after browsing to drill into a s
 | log_name | string | System | Event log (must be in allowlist) |
 | record_id | integer | — | Required. The RecordId of the event |
 
+## Examples
+
+### Example 1: Diagnosing errors since boot
+
+**User prompt:** "What errors have occurred since I started my PC today?"
+
+**Expected behaviour:**
+- Claude calls `get_events_since_boot` on the System log filtered to level 2 (Error)
+- Returns a list of error events with timestamps, source names, and messages
+- Claude summarises what each error means in plain English and flags anything worth investigating
+
+---
+
+### Example 2: Investigating a recent crash
+
+**User prompt:** "My application crashed about 20 minutes ago — what happened?"
+
+**Expected behaviour:**
+- Claude calls `get_recent_events` on the Application log with `minutes=30` and `level=2`
+- Returns error events from that window including the crashing application's name and error message
+- Claude identifies the likely cause and suggests next steps, such as reinstalling, updating, or checking for conflicting software
+
+---
+
+### Example 3: Finding noisy or misbehaving components
+
+**User prompt:** "Which part of Windows is generating the most warnings right now?"
+
+**Expected behaviour:**
+- Claude calls `get_top_event_sources` on the System log over the last 60 minutes
+- Returns a ranked list of event sources by frequency
+- Claude explains what each source is, why it might be noisy, and whether any warrant further investigation
+
 ## Data privacy
 
 **Event log data is sent to Anthropic.** When you ask Claude a question that triggers a tool call, the returned event log JSON is included in your conversation and sent to Anthropic's API over HTTPS. This is how all MCP tools work — the extension has no control over it.
@@ -221,6 +254,8 @@ You should see two JSON responses (`initialize` and `tools/list`) and no respons
 ## Contributing
 
 Issues and pull requests are welcome. Please read the source before contributing — the goal is to keep the server simple and auditable.
+
+For bug reports or questions, open an issue on [GitHub Issues](https://github.com/cleggypdc/windows-eventlog-mcpb/issues).
 
 ## Licence
 
