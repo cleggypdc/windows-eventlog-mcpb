@@ -1,0 +1,10 @@
+{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"test","version":"1.0.0"}}}
+{"jsonrpc":"2.0","method":"notifications/initialized"}
+{"jsonrpc":"2.0","id":10,"method":"tools/call","params":{"name":"get_recent_events","arguments":{"log_name":"Security","minutes":60}}}
+{"jsonrpc":"2.0","id":11,"method":"tools/call","params":{"name":"get_recent_events","arguments":{"log_name":"Microsoft-Windows-PowerShell/Operational"}}}
+{"jsonrpc":"2.0","id":12,"method":"tools/call","params":{"name":"get_recent_events","arguments":{"log_name":"System","level":99}}}
+{"jsonrpc":"2.0","id":13,"method":"tools/call","params":{"name":"get_event_detail","arguments":{"record_id":"not_a_number"}}}
+{"jsonrpc":"2.0","id":14,"method":"tools/call","params":{"name":"get_event_detail","arguments":{}}}
+{"jsonrpc":"2.0","id":15,"method":"tools/call","params":{"name":"get_recent_events","arguments":{"log_name":"System","minutes":-500}}}
+{"jsonrpc":"2.0","id":16,"method":"tools/call","params":{"name":"bogus_tool","arguments":{}}}
+{"jsonrpc":"2.0","id":17,"method":"tools/call"}

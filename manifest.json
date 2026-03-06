@@ -1,0 +1,55 @@
+{
+  "manifest_version": "0.3",
+  "name": "windows-eventlog-mcp",
+  "display_name": "Windows Event Log",
+  "version": "1.0.0",
+  "description": "Query Windows Event Logs from Claude Desktop using plain English. Diagnose system errors, app crashes, and warnings without touching Event Viewer.",
+  "author": {
+    "name": "cleggypdc"
+  },
+  "license": "GPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cleggypdc/windows-eventlog-mcpb.git"
+  },
+  "server": {
+    "type": "binary",
+    "mcp_config": {
+      "command": "pwsh",
+      "args": ["-NoProfile", "-NonInteractive", "-File", "${__dirname}/server/server.ps1"],
+      "env": {
+        "EVENTLOG_ALLOWED_LOGS": "${user_config.allowed_logs}"
+      }
+    }
+  },
+  "tools": [
+    {
+      "name": "get_events_since_boot",
+      "description": "Get Windows Event Log entries since the last system boot. Supports configurable log allowlist with optional level filtering."
+    },
+    {
+      "name": "get_recent_events",
+      "description": "Get Windows Event Log entries from the last N minutes. Check Application for app crashes, System for OS/driver issues."
+    },
+    {
+      "name": "get_top_event_sources",
+      "description": "Get the most frequent event sources in a log over a time window. Identifies noisy or problematic components."
+    },
+    {
+      "name": "get_event_detail",
+      "description": "Get full detail for a single event by RecordId. Use after browsing to drill into a specific entry."
+    }
+  ],
+  "user_config": {
+    "allowed_logs": {
+      "type": "string",
+      "title": "Allowed Event Logs",
+      "description": "Comma-separated list of Windows Event Log names the server is permitted to query. Default: System, Application. Add Security or operational logs only if you understand the privacy implications.",
+      "default": "System,Application",
+      "required": false
+    }
+  },
+  "compatibility": {
+    "platforms": ["win32"]
+  }
+}
