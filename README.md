@@ -108,7 +108,7 @@ Events from the current boot session. Useful for "what went wrong since I turned
 |-----------|------|---------|-------------|
 | log_name | string | System | Event log (must be in allowlist) |
 | level | integer | — | 1=Critical, 2=Error, 3=Warning, 4=Info, 5=Verbose |
-| max_results | integer | 50 | Maximum events to return (capped at 500) |
+| max_results | integer | 20 | Maximum events to return (capped at 500) |
 
 ### `get_recent_events`
 
@@ -119,7 +119,7 @@ Events from the last N minutes. Good for "my app crashed 10 minutes ago, what ha
 | log_name | string | System | Event log (must be in allowlist) |
 | minutes | integer | 60 | Look back this many minutes (1–1440) |
 | level | integer | — | 1=Critical, 2=Error, 3=Warning, 4=Info, 5=Verbose |
-| max_results | integer | 50 | Maximum events to return (capped at 500) |
+| max_results | integer | 20 | Maximum events to return (capped at 500) |
 
 ### `get_top_event_sources`
 

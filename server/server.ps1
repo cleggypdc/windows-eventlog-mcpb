@@ -68,7 +68,7 @@ $ToolDefinitions = @(
             properties = @{
                 log_name    = @{ type = 'string';  description = "Event log name. Allowed: $script:AllowedLogsDesc"; default = 'System' }
                 level       = @{ type = 'integer'; description = 'Filter by level: 1=Critical, 2=Error, 3=Warning, 4=Informational, 5=Verbose' }
-                max_results = @{ type = 'integer'; description = "Maximum events to return (max $script:MaxResults)"; default = 50 }
+                max_results = @{ type = 'integer'; description = "Maximum events to return (max $script:MaxResults)"; default = 20 }
             }
             required = @()
         }
@@ -82,7 +82,7 @@ $ToolDefinitions = @(
                 log_name    = @{ type = 'string';  description = "Event log name. Allowed: $script:AllowedLogsDesc"; default = 'System' }
                 minutes     = @{ type = 'integer'; description = "Look back this many minutes (1-$script:MaxMinutes)"; default = 60 }
                 level       = @{ type = 'integer'; description = 'Filter by level: 1=Critical, 2=Error, 3=Warning, 4=Informational, 5=Verbose' }
-                max_results = @{ type = 'integer'; description = "Maximum events to return (max $script:MaxResults)"; default = 50 }
+                max_results = @{ type = 'integer'; description = "Maximum events to return (max $script:MaxResults)"; default = 20 }
             }
             required = @()
         }
@@ -147,12 +147,32 @@ function Resolve-Param {
 }
 
 # ---------------------------------------------------------------------------
+# Helper: strip bloat fields from event objects
+# ---------------------------------------------------------------------------
+$script:EventFields = @(
+    'Id', 'RecordId', 'TimeCreated',
+    'ProviderName', 'LogName',
+    'Level', 'LevelDisplayName',
+    'Message', 'ProcessId'
+)
+
+function Select-EventFields {
+    param([array]$Events)
+    $Events | ForEach-Object {
+        $obj = $_ | Select-Object $script:EventFields
+        $props = $_.Properties | ForEach-Object { $_.Value }
+        $obj | Add-Member -NotePropertyName 'Properties' -NotePropertyValue $props
+        $obj
+    }
+}
+
+# ---------------------------------------------------------------------------
 # Tool implementations
 # ---------------------------------------------------------------------------
 function Invoke-GetEventsSinceBoot {
     param([hashtable]$ToolArgs)
     $logName    = Resolve-Param $ToolArgs 'log_name'    'System'
-    $maxResults = [Math]::Min([int](Resolve-Param $ToolArgs 'max_results' 50), $script:MaxResults)
+    $maxResults = [Math]::Min([int](Resolve-Param $ToolArgs 'max_results' 20), $script:MaxResults)
 
     Assert-LogAllowed $logName
 
@@ -162,14 +182,15 @@ function Invoke-GetEventsSinceBoot {
 
     $events = @(Get-WinEvent -FilterHashtable $filter -MaxEvents $maxResults -ErrorAction SilentlyContinue)
     if ($events.Count -eq 0) { return '[]' }
-    return (,$events | ConvertTo-Json -Depth 5 -Compress)
+    $slim = @(Select-EventFields $events)
+    return (,$slim | ConvertTo-Json -Depth 5 -Compress)
 }
 
 function Invoke-GetRecentEvents {
     param([hashtable]$ToolArgs)
     $logName    = Resolve-Param $ToolArgs 'log_name'    'System'
     $minutes    = [Math]::Clamp([int](Resolve-Param $ToolArgs 'minutes' 60), 1, $script:MaxMinutes)
-    $maxResults = [Math]::Min([int](Resolve-Param $ToolArgs 'max_results' 50), $script:MaxResults)
+    $maxResults = [Math]::Min([int](Resolve-Param $ToolArgs 'max_results' 20), $script:MaxResults)
 
     Assert-LogAllowed $logName
 
@@ -179,7 +200,8 @@ function Invoke-GetRecentEvents {
 
     $events = @(Get-WinEvent -FilterHashtable $filter -MaxEvents $maxResults -ErrorAction SilentlyContinue)
     if ($events.Count -eq 0) { return '[]' }
-    return (,$events | ConvertTo-Json -Depth 5 -Compress)
+    $slim = @(Select-EventFields $events)
+    return (,$slim | ConvertTo-Json -Depth 5 -Compress)
 }
 
 function Invoke-GetTopEventSources {
@@ -216,7 +238,8 @@ function Invoke-GetEventDetail {
 
     $xpath = "*[System[EventRecordID=$recordId]]"
     $event = Get-WinEvent -LogName $logName -FilterXPath $xpath -MaxEvents 1
-    return (,@($event) | ConvertTo-Json -Depth 5 -Compress)
+    $slim = @(Select-EventFields @($event))
+    return (,$slim | ConvertTo-Json -Depth 5 -Compress)
 }
 
 # ---------------------------------------------------------------------------
